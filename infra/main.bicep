@@ -28,7 +28,7 @@ param storageAccountName string = ''
 
 // Networking parameters
 @description('Enable private networking with VNet integration and private endpoints')
-param enablePrivateNetworking bool = false
+param vnetEnabled bool
 param vNetName string = ''
 
 @description('Id of the user identity to be used for testing and debugging. This is not required in production. Leave empty if not needed.')
@@ -173,7 +173,7 @@ module apiRoleAssignments './app/rbac.bicep' = {
 }
 
 // Optional VNet for private networking
-module vnet './app/vnet.bicep' = if (enablePrivateNetworking) {
+module vnet './app/vnet.bicep' = if (vnetEnabled) {
   name: 'vnet'
   scope: rg
   params: {
