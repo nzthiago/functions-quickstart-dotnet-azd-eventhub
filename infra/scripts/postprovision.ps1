@@ -39,7 +39,6 @@ Write-Host "Creating/updating local.settings.json..." -ForegroundColor Yellow
         "AzureWebJobsStorage" = "UseDevelopmentStorage=true";
         "FUNCTIONS_WORKER_RUNTIME" = "dotnet-isolated";
         "EventHubConnection__fullyQualifiedNamespace" = "$EventHubNamespace";
-        "EventHubConnection__credential" = "managedidentity";
         "EventHubNamespace" = "$EventHubNamespace";
         "EventHubName" = "$EventHubName";
     }

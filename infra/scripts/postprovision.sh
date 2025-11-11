@@ -59,7 +59,6 @@ cat <<EOF > ./function-app/local.settings.json
         "AzureWebJobsStorage": "UseDevelopmentStorage=true",
         "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated",
         "EventHubConnection__fullyQualifiedNamespace": "$eventHubNamespace",
-        "EventHubConnection__credential": "managedidentity",
         "EventHubNamespace": "$eventHubNamespace",
         "EventHubName": "$eventHubName"
     }
