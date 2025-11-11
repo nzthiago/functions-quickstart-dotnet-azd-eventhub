@@ -14,11 +14,14 @@ param environmentName string
 })
 param location string
 
+
+var abbrs = loadJsonContent('./abbreviations.json')
+
 // Optional parameters
 param applicationInsightsName string = ''
 param appServicePlanName string = ''
 param eventHubNamespaceName string = ''
-param functionAppName string = ''
+param functionAppServiceName string = ''
 param logAnalyticsWorkspaceName string = ''
 param resourceGroupName string = ''
 param storageAccountName string = ''
@@ -31,7 +34,8 @@ param vNetName string = ''
 @description('Id of the user identity to be used for testing and debugging. This is not required in production. Leave empty if not needed.')
 param principalId string = deployer().objectId
 
-var abbrs = loadJsonContent('./abbreviations.json')
+var functionAppName = !empty(functionAppServiceName) ? functionAppServiceName : '${abbrs.webSitesFunctions}${resourceToken}'
+var deploymentStorageContainerName = 'app-package-${take(functionAppName, 32)}-${take(resourceToken, 7)}'
 var resourceToken = toLower(uniqueString(subscription().id, environmentName, location))
 var tags = { 'azd-env-name': environmentName }
 
@@ -68,7 +72,7 @@ module storage 'br/public:avm/res/storage/storage-account:0.13.2' = {
     blobServices: {
       containers: [
         {
-          name: 'deployments'
+          name: deploymentStorageContainerName
         }
       ]
     }
@@ -143,7 +147,7 @@ module api './app/api.bicep' = {
     runtimeName: 'dotnet-isolated'
     runtimeVersion: '8.0'
     storageAccountName: storage.outputs.name
-    deploymentStorageContainerName: 'deployments'
+    deploymentStorageContainerName: deploymentStorageContainerName
     identityId: managedIdentity.outputs.resourceId
     identityClientId: managedIdentity.outputs.clientId
     virtualNetworkSubnetId: ''
