@@ -48,8 +48,21 @@ echo -e "${WHITE}  • High throughput: ~180-270 articles/minute${NC}"
 echo ""
 echo -e "${YELLOW}Function App Name: $functionAppName${NC}"
 
-# Create local.settings.json for local development
-echo ""
-echo -e "${CYAN}Setting up local development environment...${NC}"
-DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
-"$DIR/createlocalsettings.sh"
+set -e
+
+echo -e "${YELLOW}Creating/updating local.settings.json...${NC}"
+
+cat <<EOF > ./function-app/local.settings.json
+{
+    "IsEncrypted": "false",
+    "Values": {
+        "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+        "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated",
+        "EventHubConnection__fullyQualifiedNamespace": "$eventHubNamespace",
+        "EventHubNamespace": "$eventHubNamespace",
+        "EventHubName": "$eventHubName"
+    }
+}
+EOF
+
+echo -e "${GREEN}✅ local.settings.json has been created/updated successfully!${NC}"

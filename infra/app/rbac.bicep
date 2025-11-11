@@ -68,6 +68,28 @@ resource eventHubSendRoleAssignment 'Microsoft.Authorization/roleAssignments@202
   }
 }
 
+// Grant user identity access to EventHub for receiving
+resource eventHubReceiveRoleAssignment_User 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (allowUserIdentityPrincipal && !empty(userIdentityPrincipalId)) {
+  name: guid(eventHubNamespace.id, userIdentityPrincipalId, eventHubsDataReceiverRoleDefinitionId)
+  scope: eventHubNamespace
+  properties: {
+    principalId: userIdentityPrincipalId
+    principalType: 'User'
+    roleDefinitionId: resourceId('Microsoft.Authorization/roleDefinitions', eventHubsDataReceiverRoleDefinitionId)
+  }
+}
+
+// Grant user identity access to EventHub for sending
+resource eventHubSendRoleAssignment_User 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (allowUserIdentityPrincipal && !empty(userIdentityPrincipalId)) {
+  name: guid(eventHubNamespace.id, userIdentityPrincipalId, eventHubsDataSenderRoleDefinitionId)
+  scope: eventHubNamespace
+  properties: {
+    principalId: userIdentityPrincipalId
+    principalType: 'User'
+    roleDefinitionId: resourceId('Microsoft.Authorization/roleDefinitions', eventHubsDataSenderRoleDefinitionId)
+  }
+}
+
 // Grant the Function App managed identity access to Application Insights - Managed Identity
 resource appInsightsRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
   name: guid(applicationInsights.id, managedIdentityPrincipalId, monitoringRoleDefinitionId) // Use managed identity ID

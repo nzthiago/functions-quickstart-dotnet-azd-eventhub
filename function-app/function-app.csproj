@@ -6,7 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <RootNamespace>function_app</RootNamespace>
-    <UserSecretsId>5a016cd2-546e-4943-9c5a-940d1be0d2f7</UserSecretsId>
+    <UserSecretsId>298a86c0-23c2-437c-b65c-6a0224e3297f</UserSecretsId>
   </PropertyGroup>
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
