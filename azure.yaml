@@ -1,0 +1,25 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/Azure/azure-dev/main/schemas/v1.0/azure.yaml.json
+
+name: news-streaming-eventhub-demo
+metadata:
+  template: news-streaming-eventhub-demo@1.0.0
+infra:
+  provider: bicep
+  path: infra
+services:
+  api:
+    project: ./src
+    host: function
+    language: dotnet
+hooks:
+  postprovision:
+    windows:
+      shell: pwsh
+      run: .\infra\scripts\setuplocalenvironment.ps1
+      interactive: true
+      continueOnError: false
+    posix:
+      shell: sh
+      run: ./infra/scripts/setuplocalenvironment.sh
+      interactive: true
+      continueOnError: false
