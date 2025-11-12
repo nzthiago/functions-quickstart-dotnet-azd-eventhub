@@ -4,6 +4,7 @@ param tags object = {}
 param eventHubName string = 'news'
 param partitionCount int = 32
 param retentionInDays int = 1
+param vnetEnabled bool
 
 // Create EventHub namespace using Azure Verified Module
 module eventHubNamespace 'br/public:avm/res/event-hub/namespace:0.7.1' = {
@@ -22,7 +23,7 @@ module eventHubNamespace 'br/public:avm/res/event-hub/namespace:0.7.1' = {
         }
       }
     ]
-    publicNetworkAccess: 'Enabled'
+    publicNetworkAccess: vnetEnabled ? 'Disabled' : 'Enabled'
   }
 }
 

@@ -61,4 +61,20 @@ resource eventHubPrivateEndpoint 'Microsoft.Network/privateEndpoints@2022-09-01'
   ]
 }
 
+// DNS Zone Group to automatically create A records
+resource privateDnsZoneGroup 'Microsoft.Network/privateEndpoints/privateDnsZoneGroups@2022-09-01' = {
+  name: 'default'
+  parent: eventHubPrivateEndpoint
+  properties: {
+    privateDnsZoneConfigs: [
+      {
+        name: 'config1'
+        properties: {
+          privateDnsZoneId: privateDnsZone.id
+        }
+      }
+    ]
+  }
+}
+
 output privateEndpointId string = eventHubPrivateEndpoint.id

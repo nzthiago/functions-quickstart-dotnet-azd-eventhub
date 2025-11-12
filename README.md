@@ -43,9 +43,11 @@ This serverless architecture enables highly scalable, event-driven news processi
 * Event Hubs Trigger with high-throughput news streaming (180-270 articles/minute)
 * Azure Functions Flex Consumption plan for automatic scaling
 * Real-time sentiment analysis and engagement tracking
+* Optional VNet integration with private endpoints for enhanced security
 * Azure Developer CLI (azd) integration for easy deployment
 * Infrastructure as Code using Bicep templates with Azure Verified Modules
 * Comprehensive monitoring with Application Insights
+* Managed Identity authentication for secure, passwordless access
 
 ## Getting Started
 
@@ -77,7 +79,23 @@ This serverless architecture enables highly scalable, event-driven news processi
    Set-ExecutionPolicy RemoteSigned
    ```
 
-3. Provision Azure resources using azd
+3. Configure VNet settings (optional)
+   
+   By default, you must explicitly choose whether to enable VNet integration:
+   
+   **For simple deployment without VNet (public endpoints):**
+   ```bash
+   azd env set VNET_ENABLED false
+   ```
+   
+   **For secure deployment with VNet (private endpoints):**
+   ```bash
+   azd env set VNET_ENABLED true
+   ```
+   
+   > **Note:** If you don't set `VNET_ENABLED`, the deployment will fail with an error asking you to make an explicit choice.
+
+4. Provision Azure resources using azd
    ```bash
    azd provision
    ```
@@ -86,6 +104,7 @@ This serverless architecture enables highly scalable, event-driven news processi
    - Azure Function App (Flex Consumption)
    - Application Insights for monitoring
    - Storage Account for function app
+   - Virtual Network with private endpoints (if `VNET_ENABLED=true`)
    - Other supporting resources
    - local.settings.json for local development with Azure Functions Core Tools, which should look like this:
    ```json
@@ -130,6 +149,8 @@ This serverless architecture enables highly scalable, event-driven news processi
    - Builds the .NET project using `azd package`
    - Publishes the function app using `azd deploy`
    - Updates application settings in Azure
+
+   > **Note:** If you deploy with `vnetEnabled=true`, see the [Networking and VNet Integration](#networking-and-vnet-integration) section below for important details about network security and deployment.
 
 7. Test the deployed function by monitoring the logs in Azure Portal:
    - Navigate to your Function App in the Azure Portal
@@ -344,6 +365,32 @@ functions-quickstart-dotnet-azd-eventhub/
 ├── func-eventhub-new-sample.sln    # Visual Studio solution
 └── README.md
 ```
+
+## Networking and VNet Integration
+
+This sample supports optional VNet integration with private endpoints for enhanced security. 
+
+### Configuration
+
+Set the `VNET_ENABLED` environment variable before deployment:
+
+**For simple deployment without VNet (public endpoints):**
+```bash
+azd env set VNET_ENABLED false
+```
+
+**For secure deployment with VNet (private endpoints):**
+```bash
+azd env set VNET_ENABLED true
+```
+
+When `vnetEnabled=true`, the deployment creates:
+- Virtual Network with three subnets (app integration, storage endpoints, Event Hub endpoints)
+- Private endpoints for Storage (blob, table, queue) and Event Hubs
+- Private DNS zones for name resolution
+- Network isolation with public access disabled
+
+The VNet deployment takes longer (~4-5 minutes) but provides enhanced security suitable for production workloads.
 
 ## Resources
 
