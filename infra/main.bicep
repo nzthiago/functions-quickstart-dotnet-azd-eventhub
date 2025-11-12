@@ -139,6 +139,7 @@ module eventHub './app/eventhub.bicep' = {
     eventHubName: 'news'
     partitionCount: 32
     retentionInDays: 1
+    vnetEnabled: vnetEnabled
   }
 }
 
@@ -174,12 +175,11 @@ module api './app/api.bicep' = {
     deploymentStorageContainerName: deploymentStorageContainerName
     identityId: apiUserAssignedIdentity.outputs.resourceId
     identityClientId: apiUserAssignedIdentity.outputs.clientId
-    virtualNetworkSubnetId: vnetEnabled ? resourceId('Microsoft.Network/virtualNetworks/subnets', vnetName, 'app') : ''
+    virtualNetworkSubnetId: vnetEnabled ? serviceVirtualNetwork.outputs.appSubnetID : ''
     eventHubNamespaceName: eventHub.outputs.eventHubNamespaceName
     eventHubName: 'news'
     appSettings: []
   }
-  dependsOn: vnetEnabled ? [vnet] : []
 }
 
 // Role assignments for the managed identity to access resources
@@ -200,7 +200,7 @@ module apiRoleAssignments './app/rbac.bicep' = {
 }
 
 // Optional VNet for private networking
-module vnet './app/vnet.bicep' = if (vnetEnabled) {
+module serviceVirtualNetwork './app/vnet.bicep' = if (vnetEnabled) {
   name: 'serviceVirtualNetwork'
   scope: rg
   params: {
@@ -248,6 +248,7 @@ output AZURE_CLIENT_ID string = apiUserAssignedIdentity.outputs.clientId
 output SERVICE_API_IDENTITY_PRINCIPAL_ID string = apiUserAssignedIdentity.outputs.principalId
 output SERVICE_API_NAME string = api.outputs.SERVICE_API_NAME
 output SERVICE_API_URI string = 'https://${api.outputs.SERVICE_API_NAME}.azurewebsites.net'
+output RESOURCE_GROUP string = rg.name
 
 // EventHub outputs for local development
 output EVENTHUB_CONNECTION__fullyQualifiedNamespace string = '${eventHub.outputs.eventHubNamespaceName}.servicebus.windows.net'

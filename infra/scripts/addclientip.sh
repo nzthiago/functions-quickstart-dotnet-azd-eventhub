@@ -27,12 +27,12 @@ else
     ClientIP=$(curl -s https://api.ipify.org)
     
     # Check and update Event Hubs network rules
-    Rules=$(az eventhubs namespace network-rule list --resource-group "$ResourceGroup" --namespace-name "$EventHubNamespace" --query "ipRules" -o json)
-    IPExists=$(echo "$Rules" | jq -r --arg ip "$ClientIP" '.[] | select(.ipMask == $ip) | .ipMask')
+    NetworkRuleSet=$(az eventhubs namespace network-rule-set show --resource-group "$ResourceGroup" --namespace-name "$EventHubNamespace" -o json)
+    IPExists=$(echo "$NetworkRuleSet" | jq -r --arg ip "$ClientIP" '.ipRules[]? | select(.ipMask == $ip) | .ipMask')
     
     if [[ -z $IPExists ]]; then
         echo "Adding the client IP $ClientIP to the network rule of the Event Hubs service $EventHubNamespace"
-        az eventhubs namespace network-rule add --resource-group "$ResourceGroup" --namespace-name "$EventHubNamespace" --ip-address "$ClientIP" > /dev/null
+        az eventhubs namespace network-rule-set ip-rule add --resource-group "$ResourceGroup" --namespace-name "$EventHubNamespace" --ip-rule "ip-address=$ClientIP/32 action=Allow" > /dev/null
         
         # Mark the public network access as enabled since the client IP is added to the network rule
         EventHubResourceId=$(az eventhubs namespace show --resource-group "$ResourceGroup" --name "$EventHubNamespace" --query id -o tsv)

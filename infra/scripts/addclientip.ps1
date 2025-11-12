@@ -26,21 +26,26 @@ else {
     # Get the client IP
     $ClientIP = Invoke-RestMethod -Uri 'https://api.ipify.org'
     
-    $Rules = az eventhubs namespace network-rule list --resource-group $ResourceGroup --namespace-name $EventHubNamespace --query "ipRules"
-    $RulesList = $Rules | ConvertFrom-Json
+    # Get current network rule set
+    $NetworkRuleSet = az eventhubs namespace network-rule-set show --resource-group $ResourceGroup --namespace-name $EventHubNamespace | ConvertFrom-Json
     $IPExists = $false
     
-    foreach ($Rule in $RulesList) {
-        $IPExists = $Rule.ipMask -contains $ClientIP
+    if ($NetworkRuleSet.ipRules) {
+        foreach ($Rule in $NetworkRuleSet.ipRules) {
+            if ($Rule.ipMask -eq $ClientIP) {
+                $IPExists = $true
+                break
+            }
+        }
     }
     
     if ($false -eq $IPExists) {
         # Add the client IP to the network rule of the Event Hubs namespace
         Write-Output "Adding the client IP $ClientIP to the network rule of the Event Hubs service $EventHubNamespace"
-        az eventhubs namespace network-rule add --resource-group $ResourceGroup --namespace-name $EventHubNamespace --ip-address $ClientIP > $null
+        az eventhubs namespace network-rule-set ip-rule add --resource-group $ResourceGroup --namespace-name $EventHubNamespace --ip-rule ip-address=$ClientIP/32 action=Allow > $null
         
         # Mark the public network access as enabled since the client IP is added to the network rule
-        $EventHubResourceId = az eventhubs namespace show --resource-group $ResourceGroup --name $EventHubNamespace --query id
+        $EventHubResourceId = az eventhubs namespace show --resource-group $ResourceGroup --name $EventHubNamespace --query id -o tsv
         az resource update --ids $EventHubResourceId --set properties.publicNetworkAccess="Enabled" > $null
     }
     else {
