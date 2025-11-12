@@ -9,6 +9,9 @@ param runtimeName string
 param runtimeVersion string 
 param serviceName string = 'api'
 param storageAccountName string
+param enableBlob bool = true
+param enableQueue bool = false
+param enableTable bool = false
 param deploymentStorageContainerName string
 param virtualNetworkSubnetId string = ''
 param instanceMemoryMB int = 2048
@@ -77,6 +80,17 @@ module api 'br/public:avm/res/web/site:0.19.3' = {
           name: 'AzureWebJobsStorage__blobServiceUri'
           value: stg.properties.primaryEndpoints.blob
         }
+      ], enableQueue ? [
+        {
+          name: 'AzureWebJobsStorage__queueServiceUri'
+          value: stg.properties.primaryEndpoints.queue
+        }
+      ] : [], enableTable ? [
+        {
+          name: 'AzureWebJobsStorage__tableServiceUri'
+          value: stg.properties.primaryEndpoints.table
+        }
+      ] : [], [
         {
           name: 'EventHubConnection__fullyQualifiedNamespace'
           value: '${eventHubNamespaceName}.servicebus.windows.net'

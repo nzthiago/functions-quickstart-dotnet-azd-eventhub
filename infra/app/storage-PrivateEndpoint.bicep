@@ -4,6 +4,9 @@ param subnetName string
 param resourceName string
 param location string = resourceGroup().location
 param tags object = {}
+param enableBlob bool = true
+param enableQueue bool = false
+param enableTable bool = false
 
 resource vnet 'Microsoft.Network/virtualNetworks@2021-08-01' existing = {
   name: virtualNetworkName
@@ -19,7 +22,7 @@ var tablePrivateDNSZoneName = 'privatelink.table.${environment().suffixes.storag
 var queuePrivateDNSZoneName = 'privatelink.queue.${environment().suffixes.storage}'
 
 // AVM module for Blob Private DNS Zone
-module privateDnsZoneBlobDeployment 'br/public:avm/res/network/private-dns-zone:0.7.1' = {
+module privateDnsZoneBlobDeployment 'br/public:avm/res/network/private-dns-zone:0.7.1' = if (enableBlob) {
   name: 'blob-private-dns-zone-deployment'
   params: {
     name: blobPrivateDNSZoneName
@@ -38,7 +41,7 @@ module privateDnsZoneBlobDeployment 'br/public:avm/res/network/private-dns-zone:
 }
 
 // AVM module for Table Private DNS Zone
-module privateDnsZoneTableDeployment 'br/public:avm/res/network/private-dns-zone:0.7.1' = {
+module privateDnsZoneTableDeployment 'br/public:avm/res/network/private-dns-zone:0.7.1' = if (enableTable) {
   name: 'table-private-dns-zone-deployment'
   params: {
     name: tablePrivateDNSZoneName
@@ -57,7 +60,7 @@ module privateDnsZoneTableDeployment 'br/public:avm/res/network/private-dns-zone
 }
 
 // AVM module for Queue Private DNS Zone
-module privateDnsZoneQueueDeployment 'br/public:avm/res/network/private-dns-zone:0.7.1' = {
+module privateDnsZoneQueueDeployment 'br/public:avm/res/network/private-dns-zone:0.7.1' = if (enableQueue) {
   name: 'queue-private-dns-zone-deployment'
   params: {
     name: queuePrivateDNSZoneName
@@ -76,7 +79,7 @@ module privateDnsZoneQueueDeployment 'br/public:avm/res/network/private-dns-zone
 }
 
 // AVM module for Blob Private Endpoint
-module blobPrivateEndpoint 'br/public:avm/res/network/private-endpoint:0.11.0' = {
+module blobPrivateEndpoint 'br/public:avm/res/network/private-endpoint:0.11.0' = if (enableBlob) {
   name: 'blob-private-endpoint-deployment'
   params: {
     name: 'blob-private-endpoint'
@@ -95,19 +98,20 @@ module blobPrivateEndpoint 'br/public:avm/res/network/private-endpoint:0.11.0' =
       }
     ]
     customDnsConfigs: []
-    privateDnsZoneGroup: {
+    privateDnsZoneGroup: enableBlob ? {
       privateDnsZoneGroupConfigs: [
         {
           name: 'storageBlobARecord'
           privateDnsZoneResourceId: privateDnsZoneBlobDeployment.outputs.resourceId
         }
       ]
-    }
+    } : null
   }
+  dependsOn: enableBlob ? [privateDnsZoneBlobDeployment] : []
 }
 
 // AVM module for Table Private Endpoint
-module tablePrivateEndpoint 'br/public:avm/res/network/private-endpoint:0.11.0' = {
+module tablePrivateEndpoint 'br/public:avm/res/network/private-endpoint:0.11.0' = if (enableTable) {
   name: 'table-private-endpoint-deployment'
   params: {
     name: 'table-private-endpoint'
@@ -126,19 +130,20 @@ module tablePrivateEndpoint 'br/public:avm/res/network/private-endpoint:0.11.0' 
       }
     ]
     customDnsConfigs: []
-    privateDnsZoneGroup: {
+    privateDnsZoneGroup: enableTable ? {
       privateDnsZoneGroupConfigs: [
         {
           name: 'storageTableARecord'
           privateDnsZoneResourceId: privateDnsZoneTableDeployment.outputs.resourceId
         }
       ]
-    }
+    } : null
   }
+  dependsOn: enableTable ? [privateDnsZoneTableDeployment] : []
 }
 
 // AVM module for Queue Private Endpoint
-module queuePrivateEndpoint 'br/public:avm/res/network/private-endpoint:0.11.0' = {
+module queuePrivateEndpoint 'br/public:avm/res/network/private-endpoint:0.11.0' = if (enableQueue) {
   name: 'queue-private-endpoint-deployment'
   params: {
     name: 'queue-private-endpoint'
@@ -157,13 +162,14 @@ module queuePrivateEndpoint 'br/public:avm/res/network/private-endpoint:0.11.0' 
       }
     ]
     customDnsConfigs: []
-    privateDnsZoneGroup: {
+    privateDnsZoneGroup: enableQueue ? {
       privateDnsZoneGroupConfigs: [
         {
           name: 'storageQueueARecord'
           privateDnsZoneResourceId: privateDnsZoneQueueDeployment.outputs.resourceId
         }
       ]
-    }
+    } : null
   }
+  dependsOn: enableQueue ? [privateDnsZoneQueueDeployment] : []
 }
