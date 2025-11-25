@@ -20,6 +20,6 @@ hooks:
       continueOnError: false
     posix:
       shell: sh
-      run: ./infra/scripts/setuplocalenvironment.sh
+      run: chmod +x ./infra/scripts/*.sh && ./infra/scripts/setuplocalenvironment.sh
       interactive: true
       continueOnError: false
